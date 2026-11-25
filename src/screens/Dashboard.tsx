@@ -10,6 +10,7 @@ import { stageLabel, highestDegreeName } from '../engine/education';
 import { BALANCE } from '../engine/config';
 import { netWorth, STAGE_NAME, stageOf, liquid } from '../engine/util';
 import { TIER_NAME } from '../engine/people';
+import { isIncarcerated, onSupervision, sentenceOf } from '../engine/justice';
 import type { StatKey } from '../engine/types';
 
 const STATS: StatKey[] = ['health', 'happiness', 'intelligence', 'appearance', 'confidence', 'discipline', 'social'];
@@ -23,11 +24,19 @@ export function Dashboard() {
   const nw = netWorth(g);
   const rep = p.fin.lastReport;
   const debt = p.fin.loans.reduce((s, l) => s + l.balance, 0) + p.fin.card.balance;
-  const status = p.edu.stage ? `📚 ${stageLabel(p)}` : job ? `💼 ${job.title} at ${job.company}` : p.career.business ? `🏢 Founder of ${p.career.business.name}` : p.career.retired ? '🌴 Retired' : p.age < 5 ? '🍼 Growing up' : p.age < 16 ? '🏠 Not in school' : '🔎 Looking for work';
+  const sen = sentenceOf(g);
+  const locked = isIncarcerated(g);
+  const status = locked && sen ? `⛓️ ${sen.facility}` : onSupervision(g) && sen ? `🗂️ ${sen.facility}` : p.edu.stage ? `📚 ${stageLabel(p)}` : job ? `💼 ${job.title} at ${job.company}` : p.career.business ? `🏢 Founder of ${p.career.business.name}` : p.career.retired ? '🌴 Retired' : p.age < 5 ? '🍼 Growing up' : p.age < 16 ? '🏠 Not in school' : '🔎 Looking for work';
   const energyMax = BALANCE.energyPerYear;
 
   return (
     <div className="space-y-4">
+      {locked && sen && (
+        <button className="card w-full border-bad/40 bg-bad/10 p-3 text-left" onClick={() => nav('/play/actions/law')}>
+          <div className="font-semibold">⛓️ You are serving a sentence</div>
+          <div className="text-xs text-muted">{sen.facility} · {sen.years >= 40 ? 'life term' : `${Math.max(0, sen.years - sen.served)} years left`}. Open Law to spend your time inside.</div>
+        </button>
+      )}
       <Card className="relative overflow-hidden">
         <div className="pointer-events-none absolute -right-10 -top-10 h-40 w-40 rounded-full opacity-30 blur-3xl" style={{ background: 'var(--brand)' }} />
         <div className="relative flex items-center gap-4">

@@ -5,7 +5,7 @@ import type { JournalKind } from '../engine/types';
 
 const FILTERS: { id: 'all' | JournalKind; label: string }[] = [
   { id: 'all', label: 'All' }, { id: 'event', label: 'Events' }, { id: 'decision', label: 'Decisions' }, { id: 'career', label: 'Career' }, { id: 'education', label: 'School' },
-  { id: 'family', label: 'Family' }, { id: 'finance', label: 'Money' }, { id: 'health', label: 'Health' }, { id: 'milestone', label: 'Milestones' }, { id: 'achievement', label: 'Awards' }, { id: 'world', label: 'World' },
+  { id: 'family', label: 'Family' }, { id: 'finance', label: 'Money' }, { id: 'health', label: 'Health' }, { id: 'milestone', label: 'Milestones' }, { id: 'achievement', label: 'Awards' }, { id: 'world', label: 'World' }, { id: 'crime', label: 'Law' },
 ];
 
 export function Journal() {

@@ -3,6 +3,8 @@ import { CHILDHOOD } from './childhood';
 import { YOUNG_ADULT, CAREER_EVENTS, INDUSTRY } from './career';
 import { MONEY, RELATIONSHIPS, HEALTH, SENIOR, MISC } from './life';
 import { FAMILY_EVENTS } from './family';
+import { JUSTICE_EVENTS } from './justice';
+import { CREATOR_EVENTS } from './creator';
 import {
   HOBBY_EVENTS, HOBBY_FOLLOWUPS, SPORT_EVENTS, MISHAP_EVENTS, JOY_EVENTS, DILEMMAS, MODERN, PETS, HOUSING,
   PARENTING, LEGAL, SEASONAL, WORKPLACE,
@@ -11,7 +13,7 @@ import {
 export const EVENTS: EventTemplate[] = [
   ...CHILDHOOD, ...YOUNG_ADULT, ...CAREER_EVENTS, ...INDUSTRY, ...MONEY, ...RELATIONSHIPS, ...HEALTH, ...SENIOR, ...MISC,
   ...HOBBY_EVENTS, ...HOBBY_FOLLOWUPS, ...SPORT_EVENTS, ...MISHAP_EVENTS, ...JOY_EVENTS, ...DILEMMAS, ...MODERN, ...PETS,
-  ...HOUSING, ...PARENTING, ...LEGAL, ...SEASONAL, ...WORKPLACE, ...FAMILY_EVENTS,
+  ...HOUSING, ...PARENTING, ...LEGAL, ...SEASONAL, ...WORKPLACE, ...FAMILY_EVENTS, ...JUSTICE_EVENTS, ...CREATOR_EVENTS,
 ];
 
 /** Extension point: other modules may register more templates before the game starts. */

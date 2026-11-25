@@ -124,17 +124,23 @@ export const ACTIVITIES: ActivityDef[] = [
   // ---------------------------------------------------------------- Risky
   A('Risky', 'shoplift', '🛍️', 'Shoplift', 'Take something without paying. Illegal — and wrong.', 13, 1, [
     o('You got away with it. Barely.', { money: 120, discipline: -3, confidence: 1 }, 3),
-    o('You were caught by a security guard!', { crime: 2, happiness: -7, money: -300, rel: ['parents', -8, -6] }, 2),
+    o('You were caught by a security guard!', { crime: 2, offence: 'shoplifting', happiness: -7, money: -300, rel: ['parents', -8, -6] }, 2),
   ]),
   A('Risky', 'pickpocket', '🕶️', 'Pick pockets', 'Steal from crowds. Illegal and dangerous.', 16, 1, [
-    o('A good haul.', { money: 600, discipline: -3 }, 3), o('You were caught and arrested!', { crime: 3, happiness: -9, money: -1200, job: 'fire' }, 2.5),
+    o('A good haul.', { money: 600, discipline: -3 }, 3), o('You were caught and arrested!', { crime: 3, offence: 'theft', happiness: -9, money: -1200, job: 'fire' }, 2.5),
   ]),
   A('Risky', 'cyber', '🧪', 'Cyber fraud', 'Hack and scam online. Seriously illegal.', 18, 2, [
-    o('The payoff was huge.', { money: 9000, discipline: -4 }, 2), o('You were traced and prosecuted.', { crime: 4, happiness: -12, money: -6000, job: 'fire' }, 3),
+    o('The payoff was huge.', { money: 9000, discipline: -4 }, 2), o('You were traced and prosecuted.', { crime: 4, offence: 'cyber fraud', happiness: -12, money: -6000, job: 'fire' }, 3),
   ], { when: (c) => c.p.skills.tech >= 30, disabledReason: (c) => (c.p.skills.tech >= 30 ? null : 'Needs technology skill 30.') }),
+  A('Risky', 'drugs', '💊', 'Sell drugs', 'Deal on the street. Illegal, dangerous, and punished hard.', 16, 1, [
+    o('A quiet night and fast cash.', { money: 1800, discipline: -3, happiness: -1 }, 3), o('Police raided the spot and you were arrested.', { crime: 3, offence: 'drug dealing', happiness: -10, money: -800, job: 'fire' }, 2.5),
+  ]),
+  A('Risky', 'cartheft', '🚗', 'Steal a car', 'Hotwire and sell. Illegal.', 15, 1, [
+    o('You sold it before anyone noticed.', { money: 2200, discipline: -3 }, 2.5), o('Caught red-handed.', { crime: 3, offence: 'car theft', happiness: -9, money: -1000, job: 'fire' }, 2.5),
+  ]),
   A('Risky', 'burgle', '🏚️', 'Burglary', 'Break into a house. Dangerous and illegal.', 18, 2, [
-    o('Quick and quiet — a big score.', { money: 4500, discipline: -4 }, 2), o('Arrested at the scene.', { crime: 4, happiness: -12, money: -4000, health: -3, job: 'fire' }, 3),
-    o('You were hurt escaping.', { health: -10, crime: 2, money: 500, happiness: -6 }, 1),
+    o('Quick and quiet — a big score.', { money: 4500, discipline: -4 }, 2), o('Arrested at the scene.', { crime: 4, offence: 'burglary', happiness: -12, money: -4000, health: -3, job: 'fire' }, 3),
+    o('You were hurt escaping.', { health: -10, crime: 2, offence: 'burglary', money: 500, happiness: -6 }, 1),
   ]),
 ];
 

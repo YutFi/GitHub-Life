@@ -4,6 +4,7 @@ import { fmtMoney } from './format';
 import { canAfford, creditLimit, payFromAssets } from './finance';
 import { fireFromJob, promote, quitJob } from './career';
 import { finalizeDeath } from './family';
+import { isIncarcerated, jus, registerEventQueue, reportCrime } from './justice';
 import { addSibling, newFriend } from './relationships';
 import { genPerson } from './people';
 import { chance, clamp, gauss, pick, rint, weightedPick } from './rng';
@@ -96,6 +97,9 @@ function isEligible(g: GameState, t: EventTemplate, scheduled = false): boolean 
   const age = p.age;
   const rec = g.eventLog[t.id];
   const ctx = makeCtx(g);
+  const locked = isIncarcerated(g);
+  if (locked && !['prison', 'family', 'health'].includes(t.category)) return false;
+  if (!locked && t.category === 'prison') return false;
   if (!scheduled) {
     if (age < t.ages[0] || age > t.ages[1]) return false;
     if (t.yearMin && g.year < t.yearMin) return false;
@@ -108,6 +112,8 @@ function isEligible(g: GameState, t: EventTemplate, scheduled = false): boolean 
   if (t.when && !t.when(ctx)) return false;
   return true;
 }
+
+registerEventQueue((g, id) => { const t = templateById(id); if (t) queueTemplate(g, t, true); });
 
 function queueTemplate(g: GameState, t: EventTemplate, front = false) {
   const active = buildActive(g, t);
@@ -203,7 +209,16 @@ export function applyEffects(g: GameState, fx: Effects, ctx: EventCtx): EffectSu
   if (fx.expel && p.edu.stage) { p.edu.stage = null; p.edu.dropouts++; notes.push('You were expelled from school.'); }
   if (fx.cond && !p.conditions.includes(fx.cond)) { p.conditions.push(fx.cond); notes.push(`New health condition: ${fx.cond}`); }
   if (fx.cure) p.conditions = p.conditions.filter((x) => x !== fx.cure);
-  if (fx.crime) { incFlag(p, 'crimes', fx.crime); if (fx.crime >= 2 && p.age >= 18) { setFlag(p, 'criminalRecord', true); p.career.reputation = clamp(p.career.reputation - 8 * fx.crime, 0, 100); notes.push('You now have a criminal record.'); } }
+  if (fx.crime) {
+    incFlag(p, 'crimes', fx.crime);
+    if (reportCrime(g, fx.crime, fx.offence) === 'court') { const ct = templateById('jus_court'); if (ct) queueTemplate(g, ct, true); }
+  }
+  if (isIncarcerated(g)) {
+    const sen = jus(p).sentence!;
+    if (fx.sentence) sen.years = Math.max(sen.served + 1, sen.years + fx.sentence);
+    if (fx.conduct) sen.conduct = clamp(sen.conduct + fx.conduct, 0, 100);
+    if (fx.standing) sen.standing = clamp(sen.standing + fx.standing, 0, 100);
+  }
   if (fx.salaryPct && p.career.job) p.career.job.salary = Math.round(p.career.job.salary * (1 + fx.salaryPct));
   if (fx.job) {
     const j = p.career.job;

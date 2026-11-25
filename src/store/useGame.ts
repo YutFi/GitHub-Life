@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { checkAchievements } from '../engine/achievements';
 import { ageUp } from '../engine/aging';
 import { snapshot } from '../engine/character';
+import { isIncarcerated } from '../engine/justice';
 import { DEFAULT_TUNING } from '../engine/config';
 import { continueAsChild } from '../engine/family';
 import { popNextEvent, resolveChoice } from '../engine/events';
@@ -26,7 +27,7 @@ interface Store {
   // gameplay
   age: () => void;
   choose: (index: number) => void;
-  act: <T extends ActionResult>(fn: (g: GameState) => T, opts?: { quiet?: boolean; outcome?: boolean }) => T;
+  act: <T extends ActionResult>(fn: (g: GameState) => T, opts?: { quiet?: boolean; outcome?: boolean; prison?: boolean }) => T;
   closeOutcome: () => void;
   nextGeneration: (childId: string) => void;
   // persistence
@@ -140,6 +141,11 @@ export const useGame = create<Store>((set, get) => {
     act: (fn, opts = {}) => {
       const cur = get().game;
       if (!cur) return { ok: false, msg: 'No game loaded.' } as never;
+      if (isIncarcerated(cur) && !opts.prison) {
+        const msg = 'You cannot do that while you are incarcerated.';
+        toast(msg, 'bad', '⛓️');
+        return { ok: false, msg, tone: 'bad' } as never;
+      }
       const g = clone(cur);
       const r = fn(g);
       if (r.ok) {

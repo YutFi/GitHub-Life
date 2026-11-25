@@ -13,7 +13,13 @@ export const story = (id: string, category: string, ages: [number, number], icon
   ev(id, category, ages, icon, title, text, [ch('Take it in', [o(result, fx)])], extra);
 
 const liq = (c: EventCtx) => c.p.fin.cash + c.p.fin.savings;
+const sentOf = (c: EventCtx) => c.p.justice?.sentence ?? null;
 export const P = {
+  prison: (c: EventCtx) => { const s = sentOf(c); return !!s && (s.kind === 'prison' || s.kind === 'juvenile' || s.kind === 'rehab'); },
+  juvenileInside: (c: EventCtx) => { const s = sentOf(c); return !!s && s.kind === 'juvenile'; },
+  probation: (c: EventCtx) => { const s = sentOf(c); return !!s && (s.kind === 'probation' || s.kind === 'community'); },
+  exOffender: (c: EventCtx) => !!c.p.flags.exOffender && !sentOf(c),
+  free: (c: EventCtx) => { const s = sentOf(c); return !s || s.kind === 'probation' || s.kind === 'community'; },
   employed: (c: EventCtx) => !!c.p.career.job && !c.p.career.job.partTime,
   working: (c: EventCtx) => !!c.p.career.job,
   jobless: (c: EventCtx) => !c.p.career.job && !c.p.career.retired && c.p.age >= 18 && !c.p.edu.stage,

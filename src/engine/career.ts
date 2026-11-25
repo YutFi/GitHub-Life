@@ -4,9 +4,15 @@ import { traitSum } from './data/traits';
 import { genPerson } from './people';
 import { chance, clamp, gauss, pick, rint, rnd } from './rng';
 import { hasField } from './education';
+import { isCreator, onCreatorHired, processCreator } from './creator';
 import { addStat, countryOf, diff, incFlag, log, netWorth, no, ok, partnerOf, setFlag, wageScale } from './util';
-import type { ActionResult, CareerDef, CareerState, GameState, JobState } from './types';
+import type { ActionResult, CareerDef, CareerState, Character, GameState, JobState } from './types';
 
+/** currently enrolled in college or university */
+export const isTertiary = (p: Character) => p.edu.stage === 'bachelor' || p.edu.stage === 'master' || p.edu.stage === 'doctorate' || p.edu.stage === 'vocational';
+const inPrisonNow = (g: GameState) => !!g.player.justice?.sentence && g.player.justice.sentence.kind !== 'probation' && g.player.justice.sentence.kind !== 'community';
+
+const FIELD_INDUSTRY: Record<string, string> = { cs: 'Technology', data: 'Technology', eng: 'Engineering', business: 'Business', econ: 'Finance', nursing: 'Healthcare', edu: 'Education', psych: 'Healthcare', science: 'Science', arts: 'Creative', comms: 'Media', arch: 'Engineering', human: 'Education' };
 const PREFIX = ['Junior ', '', 'Senior ', 'Lead ', 'Principal '];
 export const titleFor = (def: CareerDef, level: number) => (def.ladder ? def.ladder[Math.min(level, def.ladder.length - 1)] : `${PREFIX[level]}${def.title}`);
 export const randomCompany = () => `${pick(COMPANY_A)} ${pick(COMPANY_B)}`;
@@ -23,11 +29,15 @@ export function eligibility(g: GameState, def: CareerDef): { ok: boolean; reason
   const r: string[] = [];
   if (p.age < def.minAge) r.push(`Minimum age ${def.minAge}`);
   if (def.maxAge && p.age > def.maxAge) r.push(`Maximum age ${def.maxAge}`);
-  if (p.age > BALANCE.career.maxHireAge && !def.partTime && def.special !== 'business') r.push('Too late in life for full-time hiring');
-  if (c.retired && !def.partTime && def.special !== 'business') r.push('You are retired (part-time work only)');
-  if (e.stage && !def.partTime && p.age < 22) r.push('Finish your studies first (or take a part-time job)');
-  else if (e.stage && !def.partTime && (e.stage === 'bachelor' || e.stage === 'master' || e.stage === 'doctorate' || e.stage === 'vocational')) r.push('Finish your studies first (or take a part-time job)');
-  if (p.age < 16 && !def.partTime) r.push('Too young for full-time work');
+  const flexible = !!def.partTime || !!def.freelance;
+  if (p.age > BALANCE.career.maxHireAge && !flexible && def.special !== 'business') r.push('Too late in life for full-time hiring');
+  if (c.retired && !flexible && def.special !== 'business') r.push('You are retired (part-time or freelance work only)');
+  if (isTertiary(p) && !flexible && def.special !== 'business') r.push('Students can only work part-time or freelance. Finish your studies first');
+  else if (e.stage && !flexible && p.age < 22) r.push('Finish school first (or take a part-time job)');
+  if (def.studentOnly && !isTertiary(p)) r.push('Only for enrolled university or college students');
+  if (p.age < 16 && !flexible) r.push('Too young for full-time work');
+  if (def.cleanRecord && p.flags.criminalRecord) r.push('A criminal record rules this out');
+  if (inPrisonNow(g)) r.push('You are incarcerated');
   const need = EDU_RANK[def.minEdu];
   if (def.fields) {
     const okField = p.edu.degrees.some((d) => def.fields!.includes(d.field) && EDU_RANK[d.level] >= need);
@@ -64,12 +74,13 @@ export function hireChance(g: GameState, def: CareerDef): number {
   ch -= c.appsThisYear * 0.02;
   if (def.special === 'athlete') ch = 0.08 + (p.skills.athletic - 25) * 0.008 + (p.stats.health - 60) * 0.004;
   if (def.special === 'politician') ch = 0.1 + (p.stats.social - 55) * 0.006 + (p.stats.confidence - 50) * 0.004 + (c.reputation - 40) * 0.003;
-  if (def.partTime) ch = Math.max(ch, 0.55);
+  if (p.flags.criminalRecord && !def.freelance && !def.partTime) ch -= 0.18;
+  if (def.partTime || def.freelance) ch = Math.max(ch, 0.55);
   return clamp(ch, 0.03, 0.92);
 }
 
 export function startingLevel(g: GameState, def: CareerDef): number {
-  if (def.partTime || def.special === 'business') return 0;
+  if (def.partTime || def.special === 'business' || def.special === 'creator') return 0;
   const exp = g.player.career.experience[def.industry] ?? 0;
   if (def.special === 'ceo') return 0;
   return exp >= 10 ? 2 : exp >= 4 ? 1 : 0;
@@ -93,7 +104,7 @@ export function jobBoard(g: GameState): JobListing[] {
 }
 
 // ------------------------------------------------------------------ hiring / leaving
-function closeJob(g: GameState, reason: string) {
+export function closeJob(g: GameState, reason: string) {
   const c = g.player.career;
   if (!c.job) return;
   const last = c.history[c.history.length - 1];
@@ -119,13 +130,14 @@ export function hire(g: GameState, def: CareerDef, level?: number): JobState {
   c.unemployedYears = 0;
   c.history.push({ careerId: def.id, title: job.title, company, startAge: p.age, endAge: null, salary, level: lv });
   c.lastSalary = salary;
-  if (def.special !== 'business' && !def.partTime) {
+  if (def.special !== 'business' && !def.partTime && !def.freelance) {
     const culture = countryOf(g).names;
     const boss = genPerson({ relation: 'boss', age: rint(34, 58), year: g.year, culture, closeness: gauss(45, 12), tier: 4, wageScale: wageScale(g), metAge: p.age });
     boss.job = `${def.title} manager`;
     p.people.push(boss);
     for (let i = 0; i < 2; i++) p.people.push(genPerson({ relation: 'coworker', age: rint(22, 52), year: g.year, culture, closeness: gauss(42, 12), tier: 3, wageScale: wageScale(g), metAge: p.age }));
   }
+  if (isCreator(def)) onCreatorHired(g);
   if (c.history.length === 1) setFlag(p, 'firstJob', p.age);
   return job;
 }
@@ -229,6 +241,7 @@ export function setWorkEffort(g: GameState, e: 'low' | 'normal' | 'high'): Actio
 }
 
 export function askRaise(g: GameState): ActionResult {
+  if (g.player.career.job && isCreator(careerById(g.player.career.job.careerId))) return no('Your income follows your audience. Post, collaborate and keep growing.');
   const p = g.player; const job = p.career.job;
   if (!job) return no('You need a job first.');
   if (job.partTime && p.age < 18) return no('You are too new for that.');
@@ -274,6 +287,7 @@ export function promote(g: GameState, announce = true): boolean {
 export function askPromotion(g: GameState): ActionResult {
   const p = g.player; const job = p.career.job;
   if (!job) return no('You need a job first.');
+  if (isCreator(careerById(job.careerId))) return no('Your level rises with your audience, so keep growing it.');
   const def = careerById(job.careerId)!;
   if (job.level >= maxLevelFor(def)) return no('You are already at the top of this ladder.');
   if (p.energy < 1) return no('No energy left this year.');
@@ -305,6 +319,7 @@ export function startBusiness(g: GameState, sector: string, tier: number, name: 
   if (c.business) return no('You already run a business.');
   if (p.age < 18) return no('You must be 18 to start a company.');
   if (p.edu.stage && p.age < 22) return no('Finish your studies first.');
+  if (isTertiary(p)) return no('Students cannot run a company. Try freelancing or part-time work while you study.');
   const t = BUSINESS_TIERS[tier];
   const cost = Math.round(t.invest * wageScale(g));
   if (p.fin.cash < cost) return no(`You need ${money(g, cost)} in cash to launch a ${t.name.toLowerCase()} business.`);
@@ -371,7 +386,30 @@ function processBusiness(g: GameState) {
 }
 
 // ------------------------------------------------------------------ yearly
+/**
+ * University students cannot hold full-time jobs. When someone enrols, their current full-time role is cut back to
+ * part-time; when they finish (or drop out) the employer takes them back full-time.
+ */
+export function syncStudyWork(g: GameState) {
+  const p = g.player; const job = p.career.job;
+  if (!job) return;
+  const def = careerById(job.careerId);
+  if (!def) return;
+  const f = BALANCE.career.partTimeFactor;
+  if (isTertiary(p) && !job.partTime && !def.partTime && !def.freelance && def.special !== 'business') {
+    job.partTime = true; job.reducedForStudy = true;
+    job.salary = Math.round(job.salary * f);
+    p.career.lastSalary = job.salary;
+    log(g, 'career', `🎓 While you study, you moved to part-time hours as ${job.title}.`, 'info');
+  } else if (!isTertiary(p) && job.reducedForStudy) {
+    job.partTime = false; job.reducedForStudy = false;
+    job.salary = Math.round(job.salary / f);
+    log(g, 'career', `💼 With your studies over, ${job.company} offered you your full-time role back as ${job.title}.`, 'good');
+  }
+}
+
 export function processCareer(g: GameState) {
+  syncStudyWork(g);
   const p = g.player; const c = p.career; const w = g.world;
   c.appsThisYear = 0;
   c.lastSalary = 0;
@@ -381,6 +419,7 @@ export function processCareer(g: GameState) {
   }
   const job = c.job;
   if (!job) {
+    if ((c.audience ?? 0) > 0) c.audience = Math.round((c.audience ?? 0) * 0.9);
     const studying = !!p.edu.stage;
     if (p.age >= 18 && !studying) {
       c.unemployedYears++;
@@ -395,6 +434,7 @@ export function processCareer(g: GameState) {
   const yearWeight = job.partTime ? 0.4 : 1;
   c.totalYears += yearWeight;
   c.experience[def.industry] = (c.experience[def.industry] ?? 0) + yearWeight;
+  if (def.id === 'pt_intern') { const ind = FIELD_INDUSTRY[p.edu.field ?? '']; if (ind) c.experience[ind] = (c.experience[ind] ?? 0) + 0.6; }
   p.skills[def.skill] = clamp(p.skills[def.skill] + 2.2 * yearWeight, 0, 100);
   if (def.special !== 'business' && p.skills.leadership < 100 && job.level >= 2) p.skills.leadership = clamp(p.skills.leadership + 2, 0, 100);
 
@@ -408,6 +448,7 @@ export function processCareer(g: GameState) {
   if (p.age >= countryOf(g).retirementAge + 3 && chance(0.18) && !job.partTime) { log(g, 'career', '🪑 You decided it was time to hang up your hat.', 'info'); retire(g, true); return; }
 
   if (def.special === 'business') { processBusiness(g); if (!p.career.job) return; }
+  else if (def.special === 'creator') { processCreator(g, def); }
   else {
     const boss = p.people.find((x) => x.relation === 'boss');
     const sk = p.skills[def.skill] + p.stats.intelligence * 0.2;
@@ -424,10 +465,13 @@ export function processCareer(g: GameState) {
     if (c.effort === 'high') { addStat(p, 'health', -1); addStat(p, 'discipline', 0.5); }
     addStat(p, 'health', -def.stress * 0.08);
     if (def.stress >= 8) addStat(p, 'happiness', -1);
-    if (job.partTime) { /* simple */ } else log(g, 'career', `📋 Performance review as ${job.title}: ${txt} (${rating}/5).`, rating >= 4 ? 'good' : rating <= 2 ? 'bad' : 'neutral');
+    if (job.partTime || def.freelance) { /* no formal review for gigs */ } else log(g, 'career', `📋 Performance review as ${job.title}: ${txt} (${rating}/5).`, rating >= 4 ? 'good' : rating <= 2 ? 'bad' : 'neutral');
 
     // warnings / dismissal
-    if (rating === 1) {
+    if (rating === 1 && def.freelance) {
+      job.warnings++;
+      if (job.warnings >= 2) { log(g, 'career', `📉 Your clients dried up and your ${def.title.toLowerCase()} work came to a stop.`, 'bad'); closeJob(g, 'lost clients'); return; }
+    } else if (rating === 1) {
       job.warnings++;
       if (job.warnings >= 2) { fireFromJob(g, 'fired', 'Your performance had been poor for too long.'); return; }
       log(g, 'career', '⚠️ Your manager issued you a formal warning about your performance.', 'bad');
@@ -435,7 +479,7 @@ export function processCareer(g: GameState) {
 
     // layoffs
     const lay = BALANCE.career.baseLayoff * def.layoffRisk * (1 + w.unemployment * 8) * (w.economy === 'recession' ? 2.2 : w.economy === 'boom' ? 0.6 : 1) * (rating <= 2 ? 2 : rating === 5 ? 0.4 : 1) * diff(g).eventHarshness * (job.years > 8 ? 0.7 : 1);
-    if (!job.partTime && chance(lay)) { fireFromJob(g, 'laid off', g.world.economy === 'recession' ? 'The recession is hitting hard.' : 'Your company restructured.'); return; }
+    if (!job.partTime && !def.freelance && chance(lay)) { fireFromJob(g, 'laid off', g.world.economy === 'recession' ? 'The recession is hitting hard.' : 'Your company restructured.'); return; }
 
     // raise (yearly COLA + merit)
     if (!def.volatile) {
@@ -472,7 +516,8 @@ export function processCareer(g: GameState) {
   if (j) {
     const d = careerById(j.careerId)!;
     let inc = j.salary;
-    if (d.volatile && d.special !== 'business') inc = Math.round(j.salary * clamp(Math.exp(gauss(-0.1, 0.5 * g.tuning.volatility)), 0.25, 4));
+    if (d.volatile && d.special !== 'business' && d.special !== 'creator') inc = Math.round(j.salary * clamp(Math.exp(gauss(-0.1, 0.5 * g.tuning.volatility)), 0.25, 4));
+    if (d.freelance && d.special !== 'creator' && isTertiary(p)) inc = Math.round(inc * 0.55);
     if (d.special !== 'business') c.lastSalary = inc;
     c.salaryHistory.push(c.lastSalary);
     if (c.salaryHistory.length > 12) c.salaryHistory.shift();

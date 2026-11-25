@@ -3,6 +3,7 @@ import { DEGREES, degreeById, EDU_RANK, FIELDS } from './data/careers';
 import { chance, clamp, gauss, pick, rint } from './rng';
 import { addStat, countryOf, diff, log, no, ok, setFlag, wageScale } from './util';
 import { COMPANY_A } from './data/careers';
+import { syncStudyWork } from './career';
 import type { ActionResult, Character, DegreeDef, DegreeRecord, EduLevel, GameState } from './types';
 
 export const SCHOOL_TYPES = ['Elementary', 'Primary', 'Grammar', 'Community'];
@@ -253,6 +254,7 @@ export function applyToDegree(g: GameState, degreeId: string): ActionResult {
   log(g, 'education', `✅ You were accepted into ${d.name} at ${e.schoolName}!`, 'good');
   addStat(p, 'happiness', 6);
   setFlag(p, 'studiedAbroad', false);
+  syncStudyWork(g);
   return ok(`Accepted into ${d.name}!`, 'good');
 }
 
@@ -270,6 +272,7 @@ export function dropOut(g: GameState): ActionResult {
   e.stage = null; e.yearInStage = 0; e.scholarship = null; e.dropouts++; e.degreeId = undefined; e.degreeName = undefined;
   addStat(p, 'happiness', -3); addStat(p, 'discipline', -2);
   log(g, 'education', `🚪 You dropped out of ${nm}.`, 'bad');
+  syncStudyWork(g);
   return ok(`You dropped out of ${nm}.`, 'bad');
 }
 

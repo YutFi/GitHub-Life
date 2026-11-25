@@ -2,6 +2,7 @@
 import { BALANCE } from './config';
 import { processEducation } from './education';
 import { processCareer } from './career';
+import { processJustice } from './justice';
 import { processFinances } from './finance';
 import { processRelationships } from './relationships';
 import { processAdultChildren } from './kids';
@@ -103,6 +104,7 @@ export function ageUp(g: GameState): ActionResult {
 
   advanceWorld(g);
   processEducation(g);
+  processJustice(g);
   processCareer(g);
   processFinances(g);
   processRelationships(g);

@@ -4,6 +4,9 @@ import { useConfirmSetting, useDo, Row, ChanceChip, Notice } from './common';
 import { Card, Chip, ConfirmButton, KV, Meter, Money, SectionTitle, Segmented } from '../../components/ui';
 import { askPromotion, askRaise, applyForJob, BUSINESS_SECTORS, BUSINESS_TIERS, canRetire, jobBoard, quitJob, retire, sellBusiness, setWorkEffort, startBusiness } from '../../engine/career';
 import { careerById } from '../../engine/data/careers';
+import { creatorAds, creatorCollab, creatorGear, creatorPost, fmtAudience, gearCost, GEAR_NAME, isCreator, nextTier } from '../../engine/creator';
+import { isTertiary } from '../../engine/career';
+import { CareerTree } from './CareerTree';
 import { wageScale } from '../../engine/util';
 
 export function CareerPanel() {
@@ -14,6 +17,7 @@ export function CareerPanel() {
   const [industry, setIndustry] = useState('all');
   const [eligibleOnly, setEligibleOnly] = useState(true);
   const [q, setQ] = useState('');
+  const [view, setView] = useState<'board' | 'tree'>('board');
   const [sector, setSector] = useState(Object.keys(BUSINESS_SECTORS)[0]);
   const [tier, setTier] = useState(0);
   const [bname, setBname] = useState('');
@@ -33,7 +37,7 @@ export function CareerPanel() {
         {job ? (
           <div className="space-y-3">
             <div className="flex items-center gap-3"><div className="grid h-12 w-12 place-items-center rounded-2xl bg-black/15 text-2xl">{def?.icon ?? '💼'}</div>
-              <div className="min-w-0"><div className="truncate text-lg font-bold">{job.title}</div><div className="text-sm text-muted">{job.company}{job.partTime ? ' · part-time' : ''}</div></div></div>
+              <div className="min-w-0"><div className="truncate text-lg font-bold">{job.title}</div><div className="text-sm text-muted">{isCreator(def) ? (c.niche ?? 'creator') : job.company}{job.partTime ? (job.reducedForStudy ? ' · part-time while studying' : ' · part-time') : def?.freelance ? ' · freelance' : ''}</div></div></div>
             <div className="grid grid-cols-2 gap-x-6 sm:grid-cols-4">
               <KV k="Salary" v={<Money usd={job.salary} country={p.countryId} compact />} />
               <KV k="Years here" v={job.years} />
@@ -49,13 +53,13 @@ export function CareerPanel() {
               <p className="mt-1 text-xs text-muted">More effort means better reviews and faster promotions, at a cost to health and happiness.</p></div>
             {c.lastReview && <Notice>📝 Last review (age {c.lastReview.age}): {c.lastReview.text}</Notice>}
             <div className="flex flex-wrap gap-2">
-              <button className="btn btn-sm" onClick={() => run(askRaise)}>💰 Ask for a raise</button>
-              <button className="btn btn-sm" onClick={() => run(askPromotion)}>📈 Ask for a promotion</button>
+              {!isCreator(def) && <button className="btn btn-sm" onClick={() => run(askRaise)}>💰 Ask for a raise</button>}
+              {!isCreator(def) && <button className="btn btn-sm" onClick={() => run(askPromotion)}>📈 Ask for a promotion</button>}
               <ConfirmButton title="Quit your job?" body={`You will leave ${job.company} and lose your salary until you find new work.`} confirmLabel="Quit" skip={!confirmSetting} onConfirm={() => run(quitJob)}>🚪 Quit</ConfirmButton>
             </div>
           </div>
         ) : (
-          <p className="text-sm text-muted">{c.retired ? `You retired at ${c.retiredAge}. Your pension and savings fund your life.` : biz ? 'You are running your own company.' : p.age < 14 ? 'You are too young to work.' : p.edu.stage ? 'You are studying. Part-time jobs may be available below.' : 'You are not employed. Browse the job board below.'}</p>
+          <p className="text-sm text-muted">{c.retired ? `You retired at ${c.retiredAge}. Your pension and savings fund your life.` : biz ? 'You are running your own company.' : p.age < 14 ? 'You are too young to work.' : p.edu.stage ? 'You are studying. Students can work part-time or freelance, but not full-time.' : 'You are not employed. Browse the job board below.'}</p>
         )}
         {!c.retired && (job || biz || p.age >= 35) && (
           <div className="mt-3 border-t border-line pt-3">
@@ -64,6 +68,25 @@ export function CareerPanel() {
           </div>
         )}
       </Card>
+
+      {job && def && isCreator(def) && (
+        <Card>
+          <SectionTitle right={<Chip>{c.niche ?? 'general'}</Chip>}>🎬 Creator studio</SectionTitle>
+          <div className="grid grid-cols-2 gap-x-6 sm:grid-cols-4">
+            <KV k="Audience" v={fmtAudience(c.audience ?? 0)} />
+            <KV k="Next level" v={nextTier(c.audience ?? 0) ? fmtAudience(nextTier(c.audience ?? 0)!) : 'Top'} />
+            <KV k="Income / yr" v={<Money usd={job.salary} country={p.countryId} compact />} />
+            <KV k="Gear" v={GEAR_NAME[c.gear ?? 0]} />
+          </div>
+          <div className="mt-3 flex flex-wrap gap-2">
+            <button className="btn btn-sm" onClick={() => run(creatorPost)}>📸 Post content · ⚡1</button>
+            <button className="btn btn-sm" onClick={() => run(creatorCollab)}>🤝 Collaborate · ⚡1</button>
+            <button className="btn btn-sm" disabled={(c.gear ?? 0) >= 3} onClick={() => run(creatorGear)}>🎥 Upgrade gear{(c.gear ?? 0) < 3 ? <> · <Money usd={gearCost(g)} country={p.countryId} compact /></> : ''}</button>
+            <button className="btn btn-sm" onClick={() => run(creatorAds)}>📢 Run ads</button>
+          </div>
+          <p className="mt-2 text-xs text-muted">Your income follows your audience. Post consistently, collaborate, and hope for a viral moment. Controversy and neglect can cost you followers.</p>
+        </Card>
+      )}
 
       {c.history.length > 0 && (
         <Card><SectionTitle>Career history</SectionTitle>
@@ -96,7 +119,10 @@ export function CareerPanel() {
 
       {!c.retired && p.age >= 14 && (
         <div>
-          <SectionTitle right={<Chip>{c.appsThisYear} applied this year</Chip>}>Job board</SectionTitle>
+          <SectionTitle right={<Chip>{c.appsThisYear} applied this year</Chip>}>Jobs</SectionTitle>
+          <div className="mb-3"><Segmented size="sm" value={view} onChange={setView} options={[{ value: 'board', label: '📋 Job board' }, { value: 'tree', label: '🌳 Career tree' }]} /></div>
+          {isTertiary(p) && <div className="mb-3"><Notice>🎓 You are a student, so you can only take part-time, campus or freelance work. Full-time jobs open up when you finish your studies.</Notice></div>}
+          {view === 'tree' ? <CareerTree /> : (<>
           <div className="mb-3 grid gap-2 sm:grid-cols-[1fr_auto_auto]">
             <input className="input" placeholder="Search jobs…" value={q} onChange={(e) => setQ(e.target.value)} aria-label="Search jobs" />
             <select className="input" value={industry} onChange={(e) => setIndustry(e.target.value)} aria-label="Industry">{industries.map((i) => <option key={i} value={i}>{i === 'all' ? 'All industries' : i}</option>)}</select>
@@ -106,11 +132,12 @@ export function CareerPanel() {
             <div className="space-y-2">
               {shown.slice(0, 60).map((b) => (
                 <Row key={b.def.id} dim={!b.eligible} icon={b.def.icon} title={b.def.title}
-                  sub={b.eligible ? <>{b.def.industry} · from <Money usd={b.startSalary} country={p.countryId} compact />/yr{b.def.partTime ? ' · part-time' : ''}</> : <span className="text-bad">{b.reasons.join(' · ')}</span>}
+                  sub={b.eligible ? <>{b.def.industry} · from <Money usd={b.startSalary} country={p.countryId} compact />/yr{b.def.partTime ? ' · part-time' : b.def.freelance ? ' · freelance' : ''}</> : <span className="text-bad">{b.reasons.join(' · ')}</span>}
                   right={b.eligible ? <><ChanceChip chance={b.chance} /><button className="btn btn-primary btn-sm" onClick={() => run((x) => applyForJob(x, b.def.id))}>Apply</button></> : <Chip>Locked</Chip>} />
               ))}
             </div>
           )}
+          </>)}
         </div>
       )}
     </div>

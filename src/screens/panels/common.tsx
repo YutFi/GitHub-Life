@@ -6,7 +6,7 @@ import type { ActionResult, GameState } from '../../engine/types';
 /** Run an engine action on a clone of the game and commit the result. */
 export function useDo() {
   const act = useGame((s) => s.act);
-  return <T extends ActionResult>(fn: (g: GameState) => T, opts?: { quiet?: boolean; outcome?: boolean }) => act(fn, opts);
+  return <T extends ActionResult>(fn: (g: GameState) => T, opts?: { quiet?: boolean; outcome?: boolean; prison?: boolean }) => act(fn, opts);
 }
 export const useConfirmSetting = () => useGame((s) => s.meta.settings.confirmDestructive);
 

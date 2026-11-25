@@ -7,6 +7,7 @@ import { applyToDegree, availableDegrees } from './education';
 import { resolveChoice, popNextEvent } from './events';
 import { continueAsChild, eligibleHeirs } from './family';
 import { buyProperty, buyVehicle, deposit, invest, repayLoan, payCard, setContribution } from './finance';
+import { isIncarcerated, paroleEligible, prisonAppeal, prisonCounselling, prisonExercise, prisonParole, prisonStudy, prisonWork, prisonWriteHome } from './justice';
 import { acceptCandidate, growFamily, proposeMarriage, scoutRomance, makeFriend } from './relationships';
 import { chance, pick, rnd } from './rng';
 import { partnerOf, livingChildren } from './util';
@@ -14,7 +15,7 @@ import type { GameState } from './types';
 
 export interface BotOptions { ambition?: number; maxAge?: number }
 
-function resolvePending(g: GameState) {
+export function resolvePending(g: GameState) {
   let guard = 0;
   popNextEvent(g);
   while (g.pending && guard++ < 40) {
@@ -31,6 +32,12 @@ function resolvePending(g: GameState) {
 /** Take a handful of reasonable yearly decisions. */
 export function botYear(g: GameState, o: BotOptions = {}) {
   const p = g.player;
+  if (isIncarcerated(g)) {
+    for (const f of [prisonWork, prisonStudy, prisonCounselling, prisonExercise, prisonWriteHome]) if (chance(0.7)) f(g);
+    if (chance(0.3)) prisonAppeal(g);
+    if (paroleEligible(g)) prisonParole(g);
+    return;
+  }
   const ambition = o.ambition ?? 0.6;
   // education
   if (p.age >= 17 && !p.edu.stage && p.edu.level === 'secondary' && p.edu.degrees.length < 1 && chance(0.5 * ambition + 0.15)) {

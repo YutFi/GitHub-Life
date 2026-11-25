@@ -18,10 +18,13 @@ No account, no backend, no tracking. Saves live in your browser's local storage.
 | **Aging engine** | Yearly progression through baby → child → teen → young adult → adult → senior, with age-appropriate activities, health decline and mortality that depends on country, health, conditions and luck |
 | **Education** | Kindergarten through doctorate, grades and effort, admission chances, scholarships, student loans, dropping out and returning |
 | **Careers** | 50+ careers with qualifications, interviews, promotions, reviews, raises, layoffs, firings, retirement and pensions — plus founding and selling your own business |
+| **Students & work** | University and college students cannot hold full-time jobs. They can work part-time, freelance, take student-only roles (campus job, research assistant, internship) or build a creator career. A full-time job is cut to part-time hours when you enrol and restored when you graduate or drop out |
+| **Career tree & creator economy** | A career tree with ten paths (creator, freelance, student, tech, business, health, public service, engineering, trades, arts) shows how jobs connect from entry level to the top. Creators (content creator, streamer, YouTuber, podcaster) grow an audience through posting, collabs, gear and ads, with viral hits, algorithm slumps, scandals, brand deals and burnout |
+| **Crime & prison** | Crimes lead to arrest, a court case (plead guilty, legal aid, hire a lawyer or defend yourself) and a sentence: caution, community service, probation, fine, drug rehab, juvenile detention or prison. Facilities follow each country, for example Malaysia's Tunas Bakti and Henry Gurney schools for juveniles, Sekolah Integriti for young adults, Sungai Buloh, Kajang and Taiping prisons for adults and AADK Cure & Care for drug rehab. Inside, work, study, exercise, counselling, write home, make friends or join a gang, appeal and apply for parole. Release brings a criminal record, reentry events and a harder job market |
 | **Finance** | Cash, savings, tax brackets, loans, credit card & credit score, index funds / stocks / bonds / crypto, retirement fund, renting, buying and renting out property, vehicles, lifestyle, charity, lottery, bankruptcy, inflation and recessions |
 | **Relationships** | Friends, family, romance with compatibility, marriage (with prenups), divorce, children (natural or adopted), trust and closeness that evolve over time |
 | **Children's love lives** | Grown-up children start dating and eventually ask for your blessing. Bless them, pay for the wedding, ask them to wait, quietly investigate the partner, or forbid it, and live with the consequences: weddings, grandchildren, divorces, estrangement and reconciliation. The partner's real character is hidden unless you are perceptive or investigate. Your heir inherits their actual spouse |
-| **Events** | 330+ event templates (including everyday money, housing, work and family-care situations) with multiple choices, random outcomes and long-term consequences; follow-ups, cooldowns and a no-repeat system keep every life fresh |
+| **Events** | 350+ event templates (including everyday money, housing, work and family-care situations) with multiple choices, random outcomes and long-term consequences; follow-ups, cooldowns and a no-repeat system keep every life fresh |
 | **Generations** | Death summary with legacy score, estate settlement (debts, inheritance tax, charity, heirs), continue as one of your children, dynasty history and a family tree |
 | **Achievements** | 50+ achievements that unlock automatically across every life you play |
 | **Saves** | Autosave, 5 slots, JSON export/import (file or paste), automatic backup recovery for corrupted saves, full reset |
@@ -107,8 +110,8 @@ registerContent({
 
 ## Testing
 
-`npm test` validates every event template (unique ids, valid choices and age ranges), then simulates dozens of full lives and multi-generation dynasties with a bot player, asserting that no value ever becomes `NaN`, that characters die at plausible ages, and that saves round-trip losslessly.
+`npm test` validates every event template (unique ids, valid choices and age ranges), then checks the student work rules, the career tree, creator audience limits and the crime-to-release flow, and simulates dozens of full lives and multi-generation dynasties with a bot player, asserting that no value ever becomes `NaN`, that characters die at plausible ages, and that saves round-trip losslessly.
 
 ## Disclaimer
 
-LifeVerse is an original game inspired by the genre of life simulators. All names, characters and content are fictional. Economic figures are stylised for gameplay, not financial advice.
+LifeVerse is an original game inspired by the genre of life simulators. All names, characters and content are fictional. Economic figures are stylised for gameplay, not financial advice. The justice systems and facilities are game approximations of each country's real arrangements, not legal information.

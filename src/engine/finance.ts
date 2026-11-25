@@ -109,6 +109,12 @@ export function expenseBreakdown(g: GameState): YearReport['expenses'] {
   const earnedNow = p.career.lastSalary + (partner?.relation === 'spouse' ? partner.income * 0.4 : 0);
   const aboveMedian = Math.max(0, earnedNow - BALANCE.medianIncomeUSD * wageScale(g) * 0.9);
   if (aboveMedian > 0 && age >= 18) e.living += Math.round(aboveMedian * BALANCE.finance.lifestyleCreep * (f.lifestyle === 'frugal' ? 0.6 : f.lifestyle === 'luxury' ? 1.4 : 1) * tun);
+  const sen = p.justice?.sentence;
+  if (sen && (sen.kind === 'prison' || sen.kind === 'juvenile' || sen.kind === 'rehab')) {
+    // room, board and healthcare are provided inside; rented homes are given up
+    e.living = Math.round(e.living * 0.08); e.food = 0; e.transport = 0; e.healthcare = 0; e.children = Math.round(e.children * 0.4);
+    if (f.housing.kind === 'rent') e.housing = 0;
+  }
   return e;
 }
 

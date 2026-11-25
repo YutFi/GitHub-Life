@@ -16,7 +16,7 @@ export type Relation =
   | 'mother' | 'father' | 'guardian' | 'sibling' | 'friend' | 'partner' | 'spouse'
   | 'exPartner' | 'exSpouse' | 'child' | 'coworker' | 'boss';
 export type JournalKind =
-  | 'event' | 'decision' | 'career' | 'education' | 'family' | 'finance' | 'health' | 'achievement' | 'world' | 'milestone';
+  | 'event' | 'decision' | 'career' | 'education' | 'family' | 'finance' | 'health' | 'achievement' | 'world' | 'milestone' | 'crime';
 export type Economy = 'boom' | 'normal' | 'recession';
 
 export interface Tuning {
@@ -71,7 +71,13 @@ export interface CareerDef {
   ladder?: string[];
   volatile?: boolean; // creative/athletic income swings
   partTime?: boolean;
-  special?: 'business' | 'politician' | 'ceo' | 'athlete';
+  /** self-employed gig / creator work: allowed alongside university study, no boss, no layoffs */
+  freelance?: boolean;
+  /** must be enrolled in tertiary study (campus jobs, research assistant, internships) */
+  studentOnly?: boolean;
+  /** may be held while serving a sentence is never allowed; careers needing a clean record */
+  cleanRecord?: boolean;
+  special?: 'business' | 'politician' | 'ceo' | 'athlete' | 'creator';
   stats?: Partial<Record<StatKey, number>>; // minimums
   desc: string;
 }
@@ -145,6 +151,14 @@ export interface Effects extends Partial<Record<StatKey, number>> {
   cure?: string;
   debt?: number;
   crime?: number;
+  /** short label for the offence (used in court and the record) */
+  offence?: string;
+  /** years added to (or taken off) a running sentence */
+  sentence?: number;
+  /** change to conduct score inside */
+  conduct?: number;
+  /** change to standing among inmates */
+  standing?: number;
   salaryPct?: number;
   econ?: Economy;
   run?: (c: EventCtx) => string | void;
@@ -310,6 +324,8 @@ export interface JobState {
   satisfaction: number;
   partTime: boolean;
   warnings: number;
+  /** a full-time job cut back to part-time while studying */
+  reducedForStudy?: boolean;
 }
 
 export interface JobRecord {
@@ -338,6 +354,14 @@ export interface CareerState {
   salaryHistory: number[];
   business: Business | null;
   lastSalary: number;
+  /** creator economy: followers/subscribers across platforms */
+  audience?: number;
+  /** creator niche label */
+  niche?: string;
+  /** equipment quality 0..3 */
+  gear?: number;
+  /** times you posted this year (resets yearly) */
+  posts?: number;
 }
 
 // ------------------------------------------------------------------ finance
@@ -428,7 +452,23 @@ export interface Character {
   willCharity: number; // index into BALANCE.finance.estateCharity
   willMode: 'equal' | 'eldest';
   weddingYear?: number;
+  justice?: JusticeState;
 }
+
+// ------------------------------------------------------------------ justice
+export interface Offence { year: number; age: number; label: string; severity: number; outcome: string }
+export interface Charge { label: string; severity: number; evidence: number; juvenile: boolean }
+export type SentenceKind = 'community' | 'probation' | 'rehab' | 'juvenile' | 'prison';
+export interface Sentence {
+  kind: SentenceKind; facilityId: string; facility: string; offence: string; severity: number; juvenile: boolean;
+  years: number; served: number; startAge: number;
+  /** 0..100 good conduct, drives remission and parole */
+  conduct: number;
+  /** 0..100 respect among inmates */
+  standing: number;
+  gang: boolean; studied: number; worked: number; counselled: number; appealed: boolean; transferred: boolean;
+}
+export interface JusticeState { record: Offence[]; charge: Charge | null; sentence: Sentence | null; yearsInside: number }
 
 // ------------------------------------------------------------------ world
 export interface WorldEventInst { id: string; title: string; desc: string; startYear: number; yearsLeft: number }
