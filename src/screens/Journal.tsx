@@ -24,7 +24,7 @@ export function Journal() {
   }, [entries, f, q]);
   return (
     <div>
-      <PageHeader title="Journal" sub={`${entries.length} moments in the life of ${g.player.firstName}`} />
+      <PageHeader title="Journal" sub={`${entries.length} moment${entries.length === 1 ? '' : 's'} in the life of ${g.player.firstName}`} />
       <input className="input mb-3" placeholder="Search your story…" value={q} onChange={(e) => setQ(e.target.value)} aria-label="Search journal" />
       <Tabs tabs={FILTERS} value={f} onChange={setF} />
       {groups.length === 0 ? <Empty icon="📖">{entries.length ? 'Nothing matches that filter.' : 'Nothing has happened yet. Age up to begin your story.'}</Empty> : (

@@ -57,25 +57,27 @@ export function Saves() {
         right={<button className="btn btn-sm" onClick={() => { setTarget(slots.find((s) => s.empty)?.slot ?? 1); setErr(''); setText(''); setImportOpen(true); }}><Upload size={15} /> Import</button>} />
 
       {game && (
-        <Card className="mb-4 flex flex-wrap items-center gap-2">
-          <div className="min-w-0 flex-1 text-sm"><b>{game.player.firstName} {game.player.lastName}</b> <span className="text-muted">· slot {game.slot} · autosave {meta.settings.autosave ? 'on' : 'off'}</span></div>
+        <Card className="mb-4">
+          <div className="mb-2.5 text-sm"><b>{game.player.firstName} {game.player.lastName}</b> <span className="text-muted">· slot {game.slot} · autosave {meta.settings.autosave ? 'on' : 'off'}</span></div>
+          <div className="grid grid-cols-2 gap-2">
           <button className="btn btn-sm" onClick={() => { saveNow(); refresh(); }}><Save size={15} /> Save now</button>
           <button className="btn btn-sm" onClick={exp}><Download size={15} /> Export JSON</button>
+          </div>
         </Card>
       )}
 
       <SectionTitle>Slots</SectionTitle>
       <div className="space-y-2.5">
         {Array.from({ length: SLOT_COUNT }, (_, i) => slots[i]).map((s) => (
-          <Card key={s.slot} className="flex flex-wrap items-center gap-3">
+          <Card key={s.slot} className="flex items-center gap-3">
             <div className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-surface text-lg font-bold">{s.slot}</div>
             <div className="min-w-0 flex-1">
               {s.empty ? <div className="text-sm text-muted">Empty slot</div> : s.corrupted ? (
                 <div><div className="text-sm font-semibold text-bad">Damaged save</div><div className="text-xs text-muted">{s.recoverable ? 'A backup copy exists and will be loaded.' : 'No backup could be read.'}</div></div>
               ) : (
                 <div>
-                  <div className="truncate font-bold">{s.name}{game?.slot === s.slot && <Chip tone="info" className="ml-2">Current</Chip>}</div>
-                  <div className="truncate text-xs text-muted">{s.flag} Age {s.age} · {s.year} · {fmtMoney(s.netWorth ?? 0, s.countryId ?? 'us', true)} · Gen {s.generation}{s.alive ? '' : ' · Deceased'}</div>
+                  <div className="font-bold leading-snug">{s.name}{game?.slot === s.slot && <Chip tone="info" className="ml-2">Current</Chip>}</div>
+                  <div className="text-xs text-muted">{s.flag} Age {s.age} · {s.year} · {fmtMoney(s.netWorth ?? 0, s.countryId ?? 'us', true)} · Gen {s.generation}{s.alive ? '' : ' · Deceased'}</div>
                   {s.updatedAt && <div className="text-[0.7rem] text-muted">{new Date(s.updatedAt).toLocaleString()}</div>}
                 </div>
               )}

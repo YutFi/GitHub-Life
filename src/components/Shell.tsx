@@ -49,7 +49,7 @@ export function Shell() {
   );
   const go = (to: string) => { setMenu(false); nav(to); };
   return (
-    <div className="mx-auto flex min-h-dvh w-full max-w-6xl gap-5 px-3 pb-24 pt-3 md:px-5 md:pb-6">
+    <div className="mx-auto flex min-h-dvh w-full max-w-6xl gap-5 px-3 pb-28 pt-3 md:px-5 md:pb-6">
       <aside className="sticky top-3 hidden h-[calc(100dvh-1.5rem)] w-56 shrink-0 flex-col gap-1 md:flex">
         <div className="card mb-2 flex items-center gap-3 p-3">
           <Avatar seed={p.id} gender={p.gender} age={p.age} size={48} dead={!p.alive} />
@@ -66,15 +66,15 @@ export function Shell() {
       </aside>
 
       <div className="min-w-0 flex-1">
-        <header className="card sticky top-2 z-20 mb-4 flex items-center gap-3 p-2.5 pr-3 md:hidden">
+        <div className="topwrap md:hidden"><header className="topbar flex items-center gap-3 p-2.5 pr-3">
           <Avatar seed={p.id} gender={p.gender} age={p.age} size={40} dead={!p.alive} />
           <div className="min-w-0 flex-1 leading-tight">
             <div className="truncate text-sm font-bold">{p.firstName} {p.lastName}</div>
-            <div className="truncate text-xs text-muted">Age {p.age} · {c.flag} {p.city} · {fmtMoney(nw, p.countryId, true)}</div>
+            <div className="truncate text-xs text-muted">Age {p.age} · {c.flag} · {fmtMoney(nw, p.countryId, true)}</div>
           </div>
           <AgeButton />
           <button className="btn btn-ghost btn-sm" onClick={() => setMenu(true)} aria-label="Menu"><Menu size={18} /></button>
-        </header>
+        </header></div>
         <div className="mb-4 hidden items-center justify-between md:flex">
           <div className="text-sm text-muted">{STAGE_NAME[stageOf(p.age)]} · {p.city}, {c.name} · {g.year} · Net worth <b className="text-ink">{fmtMoney(nw, p.countryId, true)}</b>{p.generation > 1 ? ` · Generation ${p.generation}` : ''}</div>
           <AgeButton />
@@ -82,7 +82,7 @@ export function Shell() {
         <main className="anim-up"><Outlet /></main>
       </div>
 
-      <nav className="card-solid safe-b fixed inset-x-2 bottom-2 z-30 grid grid-cols-5 gap-1 p-1.5 md:hidden" aria-label="Main">{items}</nav>
+      <nav className="navbar safe-b fixed inset-x-2 bottom-2 z-30 grid grid-cols-5 gap-1 p-1.5 md:hidden" aria-label="Main">{items}</nav>
 
       <Modal open={menu} onClose={() => setMenu(false)} title="Menu">
         <div className="flex flex-col gap-2">

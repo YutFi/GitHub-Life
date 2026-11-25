@@ -117,10 +117,10 @@ export function Modal({ open, onClose, title, children, wide, dismissible = true
 
 export function Segmented<T extends string | number>({ value, options, onChange, size = 'md' }: { value: T; options: { value: T; label: ReactNode; title?: string }[]; onChange: (v: T) => void; size?: 'sm' | 'md' }) {
   return (
-    <div className="inline-flex w-full flex-wrap gap-1 rounded-2xl border border-line bg-black/10 p-1" role="radiogroup">
+    <div className={cx('inline-flex w-full gap-1 rounded-2xl border border-line bg-black/10 p-1', options.length > 4 ? 'scroll-row overflow-x-auto' : 'flex-wrap')} role="radiogroup">
       {options.map((o) => (
         <button key={String(o.value)} role="radio" aria-checked={o.value === value} title={o.title} onClick={() => onChange(o.value)}
-          className={cx('flex-1 rounded-xl px-3 font-semibold transition', size === 'sm' ? 'py-1.5 text-xs' : 'py-2 text-sm', o.value === value ? 'bg-brand text-white shadow' : 'text-muted hover:text-ink')}>
+          className={cx('flex-1 shrink-0 whitespace-nowrap rounded-xl px-3 font-semibold transition', size === 'sm' ? 'py-1.5 text-xs' : 'py-2 text-sm', o.value === value ? 'bg-brand text-white shadow' : 'text-muted hover:text-ink')}>
           {o.label}
         </button>
       ))}
@@ -193,9 +193,9 @@ export function ConfirmButton({ children, title, body, confirmLabel, danger = tr
 
 export function Tabs<T extends string>({ tabs, value, onChange }: { tabs: { id: T; label: ReactNode; icon?: ReactNode }[]; value: T; onChange: (v: T) => void }) {
   return (
-    <div className="-mx-1 mb-4 flex gap-1 overflow-x-auto px-1 pb-1" role="tablist">
+    <div className="scroll-row -mx-4 mb-4 flex gap-1.5 overflow-x-auto px-4 pb-1" role="tablist">
       {tabs.map((t) => (
-        <button key={t.id} role="tab" aria-selected={t.id === value} onClick={() => onChange(t.id)}
+        <button key={t.id} role="tab" aria-selected={t.id === value} onClick={() => onChange(t.id)} ref={(el) => { if (el && t.id === value) el.scrollIntoView({ inline: 'center', block: 'nearest' }); }}
           className={cx('flex shrink-0 items-center gap-1.5 rounded-2xl border px-3.5 py-2 text-sm font-semibold transition', t.id === value ? 'border-transparent bg-brand text-white shadow-lg' : 'border-line bg-surface text-muted hover:text-ink')}>
           {t.icon}{t.label}
         </button>

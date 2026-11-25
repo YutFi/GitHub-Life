@@ -5,6 +5,7 @@ import { useGame } from '../store/useGame';
 import { listSlots } from '../engine/save';
 import { ACHIEVEMENTS } from '../engine/achievements';
 import { Avatar } from '../components/Avatar';
+import { Logo } from '../components/Logo';
 import { Money } from '../components/ui';
 import { useInstall } from '../lib/install';
 
@@ -29,7 +30,7 @@ export function MainMenu() {
   return (
     <div className="mx-auto flex min-h-dvh w-full max-w-md flex-col justify-center px-5 py-10">
       <div className="mb-8 text-center">
-        <div className="anim-float mx-auto mb-4 grid h-24 w-24 place-items-center rounded-[2rem] text-5xl shadow-2xl" style={{ background: 'linear-gradient(135deg, var(--brand), var(--brand2))', boxShadow: 'var(--glow)' }} aria-hidden>🌍</div>
+        <div className="anim-float mx-auto mb-4 w-fit"><Logo size={96} /></div>
         <h1 className="h-display text-gradient text-5xl font-extrabold tracking-tight">LifeVerse</h1>
         <p className="mt-2 text-sm font-medium text-muted">Your Life. Your Decisions. Your Consequences.</p>
       </div>

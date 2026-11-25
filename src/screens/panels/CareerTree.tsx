@@ -17,9 +17,9 @@ export function CareerTree() {
   const cur = p.career.job?.careerId;
   return (
     <div className="space-y-3">
-      <div className="flex flex-wrap gap-1.5" role="tablist" aria-label="Career paths">
+      <div className="scroll-row -mx-4 flex gap-1.5 overflow-x-auto px-4 pb-1" role="tablist" aria-label="Career paths">
         {CAREER_TREE.map((x) => (
-          <button key={x.id} role="tab" aria-selected={x.id === pathId} className={`btn btn-sm ${x.id === pathId ? '!border-brand !bg-brand/20' : ''}`} onClick={() => setPathId(x.id)}>{x.icon} {x.name}</button>
+          <button key={x.id} role="tab" aria-selected={x.id === pathId} className={`btn btn-sm shrink-0 whitespace-nowrap ${x.id === pathId ? '!border-brand !bg-brand/20' : ''}`} onClick={() => setPathId(x.id)}>{x.icon} {x.name}</button>
         ))}
       </div>
       <p className="text-sm text-muted">{path.blurb}</p>
@@ -34,12 +34,14 @@ export function CareerTree() {
                 const here = cur === id;
                 return (
                   <Card key={id} className={`!p-3 ${b.eligible ? '' : 'opacity-70'} ${here ? '!border-brand ring-1 ring-brand/40' : ''}`}>
-                    <div className="flex items-center gap-2">
-                      <span className="text-xl" aria-hidden>{def.icon}</span>
+                    <div className="flex items-start gap-2.5">
+                      <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-surface text-xl" aria-hidden>{def.icon}</span>
                       <div className="min-w-0 flex-1">
-                        <div className="truncate text-sm font-semibold">{def.title}</div>
+                        <div className="text-sm font-semibold leading-snug">{def.title}</div>
                         <div className="text-xs text-muted">from <Money usd={b.startSalary} country={p.countryId} compact />/yr{def.partTime ? ' · part-time' : def.freelance ? ' · freelance' : ''}</div>
                       </div>
+                    </div>
+                    <div className="mt-2 flex items-center justify-between gap-2">
                       {here ? <Chip tone="good">Your job</Chip> : b.eligible ? <><ChanceChip chance={b.chance} /><button className="btn btn-primary btn-sm" onClick={() => run((x) => applyForJob(x, id))}>Apply</button></> : <Chip>Locked</Chip>}
                     </div>
                     {!b.eligible && <div className="mt-1.5 text-xs text-bad">{b.reasons.join(' · ')}</div>}

@@ -165,3 +165,14 @@ body {
   input, textarea { -webkit-user-select: text; user-select: text; }
 }
 body { padding-left: env(safe-area-inset-left); padding-right: env(safe-area-inset-right); }
+
+/* ---------- mobile polish ---------- */
+.topwrap { position: sticky; top: 0; z-index: 20; margin: calc(-.75rem - env(safe-area-inset-top)) -.75rem 1rem; padding: calc(env(safe-area-inset-top) + .75rem) .75rem .6rem; background: linear-gradient(180deg, var(--bg) 62%, transparent); }
+.topbar { border: 1px solid var(--line); border-radius: 1.25rem; background: color-mix(in srgb, var(--solid) 82%, transparent); -webkit-backdrop-filter: blur(18px) saturate(1.4); backdrop-filter: blur(18px) saturate(1.4); box-shadow: 0 8px 28px -12px rgba(0,0,0,.55); }
+.navbar { border: 1px solid var(--line); border-radius: 1.5rem; background: color-mix(in srgb, var(--solid) 86%, transparent); -webkit-backdrop-filter: blur(22px) saturate(1.5); backdrop-filter: blur(22px) saturate(1.5); box-shadow: 0 14px 40px -12px rgba(0,0,0,.65); }
+.scroll-row { scrollbar-width: none; scroll-snap-type: x proximity; -webkit-overflow-scrolling: touch; -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 1rem, #000 calc(100% - 1.75rem), transparent 100%); mask-image: linear-gradient(90deg, transparent 0, #000 1rem, #000 calc(100% - 1.75rem), transparent 100%); }
+.scroll-row::-webkit-scrollbar { display: none; }
+.scroll-row > * { scroll-snap-align: center; }
+body { padding-top: env(safe-area-inset-top); }
+button, a, [role="button"] { touch-action: manipulation; }
+input, select, textarea { font-size: max(16px, 1rem); } /* stops iOS zooming into form fields */

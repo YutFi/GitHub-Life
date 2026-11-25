@@ -103,7 +103,7 @@ export function NewLife() {
                 {COUNTRIES.map((c) => (
                   <button key={c.id} onClick={() => setCountry(c.id)} aria-pressed={c.id === form.countryId}
                     className={cx('btn !justify-start !rounded-2xl !px-3 text-left', c.id === form.countryId && '!border-brand !bg-brand/20')}>
-                    <span className="text-xl" aria-hidden>{c.flag}</span><span className="truncate">{c.name}</span>
+                    <span className="text-xl" aria-hidden>{c.flag}</span><span className="min-w-0 text-sm leading-tight">{c.name}</span>
                   </button>
                 ))}
               </div>
