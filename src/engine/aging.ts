@@ -4,6 +4,7 @@ import { processEducation } from './education';
 import { processCareer } from './career';
 import { processFinances } from './finance';
 import { processRelationships } from './relationships';
+import { processAdultChildren } from './kids';
 import { rollYearEvents, popNextEvent } from './events';
 import { finalizeDeath } from './family';
 import { snapshot } from './character';
@@ -105,6 +106,7 @@ export function ageUp(g: GameState): ActionResult {
   processCareer(g);
   processFinances(g);
   processRelationships(g);
+  processAdultChildren(g);
   driftStats(g);
 
   const stage = stageOf(p.age);

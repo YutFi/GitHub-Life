@@ -20,7 +20,8 @@ No account, no backend, no tracking. Saves live in your browser's local storage.
 | **Careers** | 50+ careers with qualifications, interviews, promotions, reviews, raises, layoffs, firings, retirement and pensions — plus founding and selling your own business |
 | **Finance** | Cash, savings, tax brackets, loans, credit card & credit score, index funds / stocks / bonds / crypto, retirement fund, renting, buying and renting out property, vehicles, lifestyle, charity, lottery, bankruptcy, inflation and recessions |
 | **Relationships** | Friends, family, romance with compatibility, marriage (with prenups), divorce, children (natural or adopted), trust and closeness that evolve over time |
-| **Events** | 300+ event templates with multiple choices, random outcomes and long-term consequences; follow-ups, cooldowns and a no-repeat system keep every life fresh |
+| **Children's love lives** | Grown-up children start dating and eventually ask for your blessing. Bless them, pay for the wedding, ask them to wait, quietly investigate the partner, or forbid it, and live with the consequences: weddings, grandchildren, divorces, estrangement and reconciliation. The partner's real character is hidden unless you are perceptive or investigate. Your heir inherits their actual spouse |
+| **Events** | 330+ event templates (including everyday money, housing, work and family-care situations) with multiple choices, random outcomes and long-term consequences; follow-ups, cooldowns and a no-repeat system keep every life fresh |
 | **Generations** | Death summary with legacy score, estate settlement (debts, inheritance tax, charity, heirs), continue as one of your children, dynasty history and a family tree |
 | **Achievements** | 50+ achievements that unlock automatically across every life you play |
 | **Saves** | Autosave, 5 slots, JSON export/import (file or paste), automatic backup recovery for corrupted saves, full reset |
@@ -66,6 +67,7 @@ src/
     types.ts           Shared data model (GameState, Character, Person, …)
     aging.ts           ageUp(): the yearly pipeline
     education.ts career.ts finance.ts relationships.ts travel.ts activities.ts
+    kids.ts            Adult children: dating, marriage proposals, divorce, estrangement
     events.ts          Event engine: eligibility, weighting, effects DSL, resolution
     family.ts          Death, estate, heirs, continuing as a child, family tree
     achievements.ts    Achievement definitions + unlock checks

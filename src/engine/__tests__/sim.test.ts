@@ -6,6 +6,10 @@ import { seedRng } from '../rng';
 import { playDynasty, playLife } from '../sim';
 import { exportGame, importGame, listSlots, loadGame, saveGame, setStorage } from '../save';
 import type { GameState } from '../types';
+import { genPerson } from '../people';
+import { createMatch, processAdultChildren } from '../kids';
+import { popNextEvent, resolveChoice, rollYearEvents } from '../events';
+import { buildFamilyTree } from '../family';
 
 const finite = (v: unknown, path = 'root'): string | null => {
   if (typeof v === 'number') return Number.isFinite(v) ? null : path;
@@ -94,5 +98,61 @@ describe('saves', () => {
     // garbage import is rejected cleanly
     expect(importGame('not json at all', 1).ok).toBe(false);
     setStorage(null);
+  });
+});
+
+
+describe('adult children and marriage', () => {
+  const setup = (seed: number) => {
+    seedRng(seed);
+    const g = newGame(randomNewLifeOptions({ wealthTier: 3 }));
+    g.player.age = 52; g.year = g.player.birthYear + 52;
+    const kid = genPerson({ relation: 'child', age: 26, year: g.year, culture: 'us', closeness: 70 });
+    kid.id = 'testkid'; kid.closeness = 70; kid.trust = 60;
+    g.player.people.push(kid);
+    kid.match = createMatch(g, kid);
+    kid.match.askAge = g.player.age; kid.match.quality = 'great';
+    return { g, kid };
+  };
+
+  it('asks for a blessing and marries the child when given', () => {
+    const { g, kid } = setup(31);
+    g.queue = []; g.pending = null;
+    rollYearEvents(g);
+    const ev = popNextEvent(g);
+    expect(ev?.id).toBe('fam_child_marry');
+    expect(ev?.text).toContain(kid.match!.name.split(' ')[0]);
+    const r = resolveChoice(g, 0);
+    expect(r.ok).toBe(true);
+    expect(kid.match?.status).toBe('married');
+    expect(kid.estranged).toBeFalsy();
+    expect(g.scheduled.some((x) => x.id === 'fam_wedding_day')).toBe(true);
+    const tree = buildFamilyTree(g);
+    expect(tree.children.find((n) => n.id === kid.id)?.note).toContain('Married');
+  });
+
+  it('forbidding either ends the romance or leads to defiance', () => {
+    let ended = 0, defied = 0;
+    for (let i = 0; i < 40; i++) {
+      const { g, kid } = setup(500 + i);
+      g.queue = []; g.pending = null;
+      rollYearEvents(g);
+      const ev = popNextEvent(g)!;
+      const idx = ev.choices.findIndex((c) => c.label.startsWith('Forbid'));
+      resolveChoice(g, idx);
+      if (!kid.match) ended++; else if (kid.estranged && kid.match.status === 'married') defied++;
+    }
+    expect(ended + defied).toBe(40);
+    expect(ended).toBeGreaterThan(0);
+  });
+
+  it('children eventually find partners over a long life', () => {
+    seedRng(9);
+    const g = newGame(randomNewLifeOptions({ wealthTier: 3 }));
+    g.player.age = 50; g.year = g.player.birthYear + 50;
+    const kid = genPerson({ relation: 'child', age: 24, year: g.year, culture: 'us' });
+    g.player.people.push(kid);
+    for (let i = 0; i < 25; i++) { g.player.age++; g.year++; processAdultChildren(g); }
+    expect(kid.match).toBeTruthy();
   });
 });

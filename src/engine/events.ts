@@ -73,8 +73,10 @@ function neededTargets(t: EventTemplate): string[] {
 export function buildActive(g: GameState, t: EventTemplate): ActiveEvent {
   const targets: Record<string, string> = {};
   for (const k of neededTargets(t)) { const per = pickPerson(g, k); if (per) targets[k] = per.id; }
-  const ctx = makeCtx(g, targets);
   const tokens: Record<string, string> = { teacher: pick(['Ms. Alvarez', 'Mr. Okoye', 'Mrs. Tan', 'Mr. Becker', 'Ms. Haddad', 'Mr. Fernandez', 'Dr. Kim']) };
+  const bound = t.prep?.(g);
+  if (bound) { Object.assign(targets, bound.targets); Object.assign(tokens, bound.tokens); }
+  const ctx = makeCtx(g, targets);
   const sc = econScale(g);
   return {
     id: t.id, title: t.title, icon: t.icon, category: t.category, targets, tokens,

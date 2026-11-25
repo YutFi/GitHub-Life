@@ -30,6 +30,8 @@ function PersonCard({ g, per, open, onToggle }: { g: GameState; per: Person; ope
           <div className="flex flex-wrap gap-1.5">
             <Chip>❤️ Closeness {Math.round(per.closeness)}</Chip><Chip>🤝 Trust {Math.round(per.trust)}</Chip>
             {(per.relation === 'partner' || per.relation === 'spouse' || per.relation === 'exPartner') && <Chip>💞 Compatibility {Math.round(per.compatibility)}%</Chip>}
+            {per.match && <Chip>{per.match.status === 'married' ? '💍' : '💞'} {per.match.status === 'married' ? 'Married to' : 'Dating'} {per.match.name}</Chip>}
+            {per.estranged && <Chip>🧊 Estranged</Chip>}
             {per.traits.map((t) => <Chip key={t}>{traitById(t)?.icon} {traitById(t)?.name ?? t}</Chip>)}
           </div>
           {per.alive && per.wealth > 0 && ['partner', 'spouse', 'mother', 'father'].includes(per.relation) && <p className="text-xs text-muted">Estimated wealth: {fmtMoney(per.wealth, cc, true)}</p>}

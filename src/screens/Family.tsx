@@ -14,6 +14,7 @@ function Node({ n, self, small }: { n: TreeNode; self?: boolean; small?: boolean
       <div className="w-full truncate text-sm font-semibold">{n.name}</div>
       <div className="text-[0.68rem] uppercase tracking-wide text-muted">{n.relation}</div>
       <div className="text-[0.7rem] text-muted">{n.birthYear}{n.deathYear ? `–${n.deathYear}` : ''}</div>
+      {n.note && <div className="w-full truncate text-[0.68rem] text-muted" title={n.note}>{n.note}</div>}
     </div>
   );
 }

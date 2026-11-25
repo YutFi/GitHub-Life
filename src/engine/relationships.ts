@@ -113,13 +113,14 @@ export function processRelationships(g: GameState) {
     }
     // children growing up
     if (per.relation === 'child') {
-      if (a >= 22 && a < 42 && !per.kids?.length && chance(0.09) ) {
+      const wed = per.match?.status === 'married' && !per.estranged;
+      if (a >= 22 && a < 42 && !per.kids?.length && chance(wed ? 0.17 : per.match ? 0.07 : 0.05)) {
         per.kids = per.kids ?? [];
         const gender: Gender = pick(['male', 'female']);
         per.kids.push({ name: randomFirstName(c.names, gender), gender, birthYear: g.year });
         log(g, 'family', `🍼 Your child ${per.name.split(' ')[0]} had a baby — you're a grandparent!`, 'good');
         addStat(p, 'happiness', 8); setFlag(p, 'grandparent', true);
-      } else if (a >= 26 && a < 45 && (per.kids?.length ?? 0) < 3 && chance(0.06)) {
+      } else if (a >= 26 && a < 45 && (per.kids?.length ?? 0) < 3 && chance(wed ? 0.1 : 0.025)) {
         per.kids = per.kids ?? [];
         const gender: Gender = pick(['male', 'female']);
         per.kids.push({ name: randomFirstName(c.names, gender), gender, birthYear: g.year });

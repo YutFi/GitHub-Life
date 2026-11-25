@@ -181,6 +181,8 @@ export interface EventTemplate {
   force?: boolean;
   choices: EventChoice[];
   tags?: string[];
+  /** Binds event-specific people/words when the event is queued (e.g. which child is asking). */
+  prep?: (g: GameState) => { targets?: Record<string, string>; tokens?: Record<string, string> } | null;
 }
 
 export interface ActiveEvent {
@@ -205,6 +207,22 @@ export interface EventCtx {
 // ------------------------------------------------------------------ people
 export interface Genes {
   intelligence: number; appearance: number; health: number; confidence: number; discipline: number; social: number;
+}
+
+/** Someone an adult child is dating, engaged to or married to. */
+export interface ChildMatch {
+  name: string;
+  gender: Gender;
+  birthYear: number;
+  job?: string;
+  wealth: number;
+  quality: 'great' | 'good' | 'risky';
+  status: 'dating' | 'married';
+  /** the parent's age at which the child asks for a blessing */
+  askAge: number;
+  deferred: number;
+  revealed?: boolean;
+  marriedAge?: number;
 }
 
 export interface Person {
@@ -238,6 +256,8 @@ export interface Person {
   adopted?: boolean;
   surname?: string;
   schoolTier?: number;
+  match?: ChildMatch;
+  estranged?: boolean;
 }
 
 export interface JournalEntry {

@@ -1,4 +1,5 @@
 import { useEffect, useId, useState, type ReactNode } from 'react';
+import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
 import { fmtMoney, currencySymbol, toLocal, toUSD } from '../engine/format';
 import type { StatKey, Tone } from '../engine/types';
@@ -95,7 +96,8 @@ export function Modal({ open, onClose, title, children, wide, dismissible = true
     return () => { window.removeEventListener('keydown', onKey); document.body.style.overflow = prev; };
   }, [open, onClose, dismissible]);
   if (!open) return null;
-  return (
+  // Portal to <body>: an ancestor with backdrop-filter/transform would otherwise become the containing block of `fixed`.
+  return createPortal(
     <div className="fixed inset-0 z-50 flex items-end justify-center sm:items-center" role="dialog" aria-modal="true" aria-labelledby={title ? id : undefined}>
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={dismissible ? onClose : undefined} />
       <div className={cx('card-solid anim-sheet relative flex max-h-[92dvh] w-full flex-col overflow-hidden rounded-b-none sm:rounded-b-[1.25rem]', wide ? 'sm:max-w-2xl' : 'sm:max-w-md')} style={{ boxShadow: '0 -20px 60px -20px rgba(0,0,0,.6)' }}>
@@ -108,7 +110,8 @@ export function Modal({ open, onClose, title, children, wide, dismissible = true
         <div className="overflow-y-auto p-4">{children}</div>
         {footer && <div className="safe-b border-t border-line p-3">{footer}</div>}
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }
 

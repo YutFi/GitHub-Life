@@ -235,7 +235,13 @@ export function continueAsChild(g: GameState, childId: string): ActionResult {
   }
   const nFriends = kidAge < 6 ? 0 : kidAge < 14 ? 2 : 3;
   for (let i = 0; i < nFriends; i++) newP.people.push(newFriend(g, kidAge < 18 ? 2 : 5));
-  if (kidAge >= 25 && chance(0.4)) {
+  const mt = kid.match;
+  if (mt) {
+    const sp = genPerson({ relation: mt.status === 'married' ? 'spouse' : 'partner', age: Math.max(18, g.year - mt.birthYear), year: g.year, culture: country.names, gender: mt.gender, closeness: kid.estranged ? 45 : 72, tier, wageScale: wageScale(g), metAge: Math.max(16, kidAge - 3) });
+    sp.name = mt.name; sp.birthYear = mt.birthYear; sp.job = mt.job; sp.wealth = mt.wealth;
+    if (mt.status === 'married') sp.marriedAge = kidAge;
+    newP.people.push(sp); newP.flags.hadPartner = true;
+  } else if (kidAge >= 25 && chance(0.4)) {
     const pa = genPerson({ relation: 'partner', age: clamp(kidAge + rint(-5, 6), 18, 80), year: g.year, culture: country.names, closeness: 62, tier: pick([2, 3, 3, 4]), wageScale: wageScale(g), metAge: kidAge - 1 });
     newP.people.push(pa); newP.flags.hadPartner = true;
   }
@@ -271,6 +277,7 @@ export function buildFamilyTree(g: GameState): FamilyTree {
   const p = g.player;
   const kids = childrenOf(p).map((k) => ({
     ...node(k, k.adopted ? 'adopted child' : 'child'),
+    note: k.match ? `${k.match.status === 'married' ? '💍 Married to' : '💞 Dating'} ${k.match.name}` : k.job,
     kids: (k.kids ?? []).map((gk): TreeNode => ({ id: `${k.id}:${gk.name}`, name: gk.name, gender: gk.gender, birthYear: gk.birthYear, alive: true, relation: 'grandchild' })),
   }));
   const spouse = p.people.find((x) => x.relation === 'spouse') ?? p.people.find((x) => x.relation === 'partner');
