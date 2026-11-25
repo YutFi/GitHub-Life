@@ -5,6 +5,8 @@ import { DEFAULT_TUNING } from '../engine/config';
 import type { Difficulty } from '../engine/types';
 import { Card, ConfirmButton, PageHeader, Segmented, SectionTitle, Slider, Toggle } from '../components/ui';
 import { GAME_VERSION } from '../engine/character';
+import { sfx } from '../lib/sound';
+import { InstallBox } from '../components/InstallBox';
 
 export function Settings() {
   const nav = useNavigate();
@@ -26,6 +28,17 @@ export function Settings() {
         <div><div className="mb-1 text-sm font-semibold">Theme</div>
           <Segmented value={s.theme} onChange={(theme) => setSettings({ theme })} options={[{ value: 'dark', label: '🌙 Dark' }, { value: 'light', label: '☀️ Light' }, { value: 'system', label: '💻 System' }]} /></div>
         <Toggle checked={s.reduceMotion} onChange={(reduceMotion) => setSettings({ reduceMotion })} label="Reduce motion" hint="Turns off animations and transitions." />
+      </Card>
+
+      <SectionTitle>Sound</SectionTitle>
+      <Card className="mb-4 space-y-3">
+        <Toggle checked={s.sound} onChange={(sound) => { setSettings({ sound }); if (sound) setTimeout(() => sfx('good'), 60); }} label="Sound effects" hint="Taps, events, achievements, money and prison sounds." />
+        {s.sound && <Slider label="Volume" value={s.soundVolume} min={0} max={1} step={0.05} onChange={(v) => setSettings({ soundVolume: v })} format={(v) => `${Math.round(v * 100)}%`} />}
+      </Card>
+
+      <SectionTitle>App</SectionTitle>
+      <Card className="mb-4 space-y-2">
+        <InstallBox />
       </Card>
 
       <SectionTitle>Game</SectionTitle>

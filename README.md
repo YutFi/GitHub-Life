@@ -27,6 +27,8 @@ No account, no backend, no tracking. Saves live in your browser's local storage.
 | **Events** | 350+ event templates (including everyday money, housing, work and family-care situations) with multiple choices, random outcomes and long-term consequences; follow-ups, cooldowns and a no-repeat system keep every life fresh |
 | **Generations** | Death summary with legacy score, estate settlement (debts, inheritance tax, charity, heirs), continue as one of your children, dynasty history and a family tree |
 | **Achievements** | 50+ achievements that unlock automatically across every life you play |
+| **Installable app** | Works as a PWA like your Arah app: add it to your home screen and it opens full screen with its own LifeVerse icon, a splash screen and offline play. Android and desktop Chrome/Edge show an Install button (main menu and Settings); on iPhone use Share → Add to Home Screen |
+| **Sound** | Synthesised sound effects (no audio files): button taps, event pop-ups, good and bad news, money, ageing up, achievements, prison and death, plus an opening jingle. Switch sound off or change the volume in Settings |
 | **Saves** | Autosave, 5 slots, JSON export/import (file or paste), automatic backup recovery for corrupted saves, full reset |
 | **Settings** | Dark/light/system theme, reduce motion, autosave, confirmations, default difficulty and live balance tuning (mortality, income, expenses, event rate, market volatility) |
 

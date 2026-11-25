@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { checkAchievements } from '../engine/achievements';
 import { ageUp } from '../engine/aging';
+import { configureSound, sfx, type Sfx } from '../lib/sound';
 import { snapshot } from '../engine/character';
 import { isIncarcerated } from '../engine/justice';
 import { DEFAULT_TUNING } from '../engine/config';
@@ -38,17 +39,20 @@ interface Store {
   // settings
   setSettings: (s: Partial<SettingsState>) => void;
   setTuning: (t: Partial<Tuning>) => void;
-  toast: (text: string, tone?: Tone, icon?: string) => void;
+  toast: (text: string, tone?: Tone, icon?: string, sound?: Sfx) => void;
   dismissToast: (id: number) => void;
 }
 
 let toastId = 1;
+const JAIL_ICONS = ['⛓️', '🚔', '⚖️'];
+const MONEY_ICONS = ['💰', '💵', '🤑'];
 
 export function applyTheme(s: SettingsState) {
   if (typeof document === 'undefined') return;
   const dark = s.theme === 'dark' || (s.theme === 'system' && window.matchMedia?.('(prefers-color-scheme: dark)').matches);
   document.documentElement.dataset.theme = dark ? 'dark' : 'light';
   document.documentElement.classList.toggle('reduce-motion', s.reduceMotion);
+  configureSound({ enabled: s.sound !== false, volume: s.soundVolume ?? 0.7 });
   document.querySelector('meta[name="theme-color"]')?.setAttribute('content', dark ? '#0a0f20' : '#f2f4ff');
 }
 
@@ -58,7 +62,8 @@ export const useGame = create<Store>((set, get) => {
   const meta0 = loadMeta();
   applyTheme(meta0.settings);
 
-  const toast = (text: string, tone: Tone = 'info', icon?: string) => {
+  const toast = (text: string, tone: Tone = 'info', icon?: string, sound?: Sfx) => {
+    sfx(sound ?? (icon && JAIL_ICONS.includes(icon) ? 'alarm' : icon && MONEY_ICONS.includes(icon) ? 'coin' : tone === 'good' ? 'good' : tone === 'bad' ? 'bad' : 'tap'));
     const t: Toast = { id: toastId++, text, tone, icon };
     set((s) => ({ toasts: [...s.toasts.slice(-3), t] }));
   };
@@ -68,7 +73,7 @@ export const useGame = create<Store>((set, get) => {
     snapshot(g);
     const { meta } = get();
     const unlocked = checkAchievements(g, meta);
-    if (!quietAch) for (const a of unlocked) toast(`${a.name} — ${a.desc}`, 'good', a.icon);
+    if (!quietAch) for (const a of unlocked) toast(`${a.name} — ${a.desc}`, 'good', a.icon, 'achievement');
     if (unlocked.length) saveMeta(meta);
     set({ game: g, meta: { ...meta } });
     if (meta.settings.autosave) {
@@ -123,6 +128,7 @@ export const useGame = create<Store>((set, get) => {
       const g = clone(cur);
       const r = ageUp(g);
       if (!r.ok) { toast(r.msg, 'bad'); return; }
+      sfx((g.phase as string) === 'dead' ? 'death' : 'age');
       commit(g);
     },
 
@@ -173,7 +179,7 @@ export const useGame = create<Store>((set, get) => {
       meta.livesLived++;
       saveMeta(meta);
       commit(g);
-      toast(r.msg, 'good', '🌱');
+      toast(r.msg, 'good', '🌱', 'birth');
     },
 
     saveNow: (quiet = false) => {

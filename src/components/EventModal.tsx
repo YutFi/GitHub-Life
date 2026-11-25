@@ -1,4 +1,6 @@
+import { useEffect } from 'react';
 import { useGame } from '../store/useGame';
+import { sfx } from '../lib/sound';
 import { Modal, Chip, statMeta } from './ui';
 import { fmtMoney } from '../engine/format';
 import type { StatKey } from '../engine/types';
@@ -12,6 +14,8 @@ export function EventModal() {
   const outcome = useGame((s) => s.outcome);
   const choose = useGame((s) => s.choose);
   const ev = g?.pending;
+  const evKey = ev ? `${ev.id}:${g?.player.age}` : '';
+  useEffect(() => { if (evKey) sfx(ev?.category === 'prison' || ev?.id.startsWith('jus_') ? 'alarm' : 'event'); }, [evKey]); // eslint-disable-line react-hooks/exhaustive-deps
   if (!g || !ev || outcome || g.phase === 'dead') return null;
   const p = g.player;
   const left = g.queue.length;

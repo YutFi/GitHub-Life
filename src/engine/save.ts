@@ -33,7 +33,7 @@ export function setStorage(s: StorageLike | null) { store = s ?? detectStorage()
 export const usingMemoryStorage = () => store instanceof MemoryStorage;
 
 // ------------------------------------------------------------------ meta & settings
-export const defaultSettings = (): SettingsState => ({ theme: 'dark', autosave: true, reduceMotion: false, defaultDifficulty: 'normal', confirmDestructive: true });
+export const defaultSettings = (): SettingsState => ({ theme: 'dark', autosave: true, reduceMotion: false, sound: true, soundVolume: 0.7, defaultDifficulty: 'normal', confirmDestructive: true });
 export const defaultMeta = (): MetaState => ({ version: 1, activeSlot: null, unlocked: {}, settings: defaultSettings(), livesLived: 0 });
 
 export function loadMeta(): MetaState {

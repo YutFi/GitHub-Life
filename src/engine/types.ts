@@ -537,6 +537,8 @@ export interface SettingsState {
   theme: 'dark' | 'light' | 'system';
   autosave: boolean;
   reduceMotion: boolean;
+  sound: boolean;
+  soundVolume: number;
   defaultDifficulty: Difficulty;
   confirmDestructive: boolean;
 }

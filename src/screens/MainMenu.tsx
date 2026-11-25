@@ -1,17 +1,19 @@
 import { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Award, FolderOpen, Play, Plus, Settings as Cog } from 'lucide-react';
+import { Award, Download, FolderOpen, Play, Plus, Settings as Cog } from 'lucide-react';
 import { useGame } from '../store/useGame';
 import { listSlots } from '../engine/save';
 import { ACHIEVEMENTS } from '../engine/achievements';
 import { Avatar } from '../components/Avatar';
 import { Money } from '../components/ui';
+import { useInstall } from '../lib/install';
 
 export function MainMenu() {
   const nav = useNavigate();
   const meta = useGame((s) => s.meta);
   const loadSlot = useGame((s) => s.loadSlot);
   const toast = useGame((s) => s.toast);
+  const { canPrompt, install } = useInstall();
   const slots = useMemo(() => listSlots(), []);
   const playable = slots.filter((s) => !s.empty && !s.corrupted);
   const latest = [...playable].sort((a, b) => (b.updatedAt ?? '').localeCompare(a.updatedAt ?? ''))[0];
@@ -52,6 +54,8 @@ export function MainMenu() {
           <button className="btn !rounded-2xl !py-3" onClick={() => nav('/settings')}><Cog size={18} /> Settings</button>
         </div>
       </div>
+
+      {canPrompt && <button className="btn btn-sm mx-auto mt-4 flex" onClick={async () => { if (await install()) toast('LifeVerse was added to your home screen.', 'good', '📲'); }}><Download size={15} /> Install app</button>}
 
       <p className="mt-8 text-center text-xs text-muted">{meta.livesLived > 0 ? `${meta.livesLived} generation${meta.livesLived === 1 ? '' : 's'} continued · ` : ''}Saved locally in your browser · No account needed</p>
     </div>

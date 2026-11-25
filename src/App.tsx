@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
 import { useGame } from './store/useGame';
 import { Toasts } from './components/Toasts';
@@ -15,6 +15,8 @@ import { Journal } from './screens/Journal';
 import { Stats } from './screens/Stats';
 import { Family } from './screens/Family';
 import { Death } from './screens/Death';
+import { Splash } from './components/Splash';
+import { sfx, unlockAudio } from './lib/sound';
 
 /** Keeps the URL in step with the game phase and restores the last session after a page refresh. */
 function Guard({ children }: { children: React.ReactNode }) {
@@ -45,8 +47,24 @@ function Guard({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }
 
+let splashShown = false;
+
 export default function App() {
+  const [splash, setSplash] = useState(!splashShown);
+  const done = useCallback(() => { splashShown = true; setSplash(false); }, []);
+  useEffect(() => {
+    // Browsers only allow sound after a gesture, so unlock on the first touch and tap-sound every button after.
+    const down = (e: Event) => {
+      unlockAudio();
+      const el = (e.target as HTMLElement | null)?.closest?.('button, a, [role="button"], summary');
+      if (el && !(el as HTMLButtonElement).disabled && !el.closest('.splash')) sfx('tap');
+    };
+    document.addEventListener('pointerdown', down, { passive: true });
+    return () => document.removeEventListener('pointerdown', down);
+  }, []);
   return (
+    <>
+    {splash && <Splash onDone={done} />}
     <Guard>
       <Routes>
         <Route path="/" element={<MainMenu />} />
@@ -69,5 +87,6 @@ export default function App() {
       <OutcomeModal />
       <Toasts />
     </Guard>
+    </>
   );
 }
